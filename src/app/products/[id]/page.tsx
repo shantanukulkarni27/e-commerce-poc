@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Loader from "@/app/components/Loader/Loader";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { SearchParamsContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime";
 
 interface Product {
   id: number;
@@ -17,15 +21,33 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
-  useEffect(() => {
-    if (id) {
-      fetch(`https://fakestoreapi.com/products/${id}`)
-        .then((res) => res.json())
-        .then((data: Product) => setProduct(data));
-    }
-  }, [id]);
+  const router = useRouter();
+  const SearchParams = useSearchParams();
 
-  if (!product) return <p className="p-6 text-center text-lg">Loading...</p>;
+
+  // useEffect(() => {
+  //   if (id) {
+  //     fetch(`https://fakestoreapi.com/products/${id}`)
+  //       .then((res) => res.json())
+  //       .then((data: Product) => setProduct(data));
+  //   }
+  // }, [id]);
+
+  useEffect(()=>{
+    const encodedData = SearchParams.get('product')
+    if(encodedData){
+      const decodedData = decodeURIComponent(encodedData)
+      const productData = JSON.parse(decodedData)
+      setProduct(productData)
+    }
+  },[])
+
+  const handleCartItem= (quantity)=>{
+    const totalPrice = product?.price * quantity
+    alert('tottal price is' + totalPrice);
+  }
+
+  if (!product) return <p className="p-6 text-center text-lg"><Loader />.</p>;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -62,7 +84,8 @@ export default function ProductDetailPage() {
 
           {/* Add to Cart Button */}
           <button
-            onClick={() => alert(`Added ${quantity} item(s) to cart!`)}
+            // onClick={() => alert(`Added ${quantity} item(s) to cart!`)}
+            onClick={() => handleCartItem(quantity,product.price)}
             className="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded transition"
           >
             Add to Cart
